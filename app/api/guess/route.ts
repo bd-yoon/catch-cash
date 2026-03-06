@@ -24,9 +24,13 @@ function getCachedRound(roundId: string) {
   return null;
 }
 
+function normalize(s: string): string {
+  return s.trim().normalize('NFC');
+}
+
 function getWordScore(answerWord: string, guessWord: string): number {
-  const cleanGuess = guessWord.trim();
-  const cleanAnswer = answerWord.trim();
+  const cleanGuess = normalize(guessWord);
+  const cleanAnswer = normalize(answerWord);
 
   if (cleanGuess === cleanAnswer) return 100;
 

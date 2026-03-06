@@ -68,14 +68,17 @@ export default function GamePage() {
           };
           if (row.winner_user_id) {
             const isWinner = row.winner_user_id === userId.current;
-            setWinnerInfo({
-              isWinner,
-              answer: row.answer_word ?? '???',
-              winnerNick: row.winner_nick,
-              attempts: row.winner_attempts,
-              points: row.points,
-            });
-            setScreen('WINNER_ANNOUNCED');
+            // 위너 자신은 API 응답에서 이미 처리됨, 다른 플레이어만 여기서 처리
+            if (!isWinner) {
+              setWinnerInfo({
+                isWinner: false,
+                answer: row.answer_word ?? '???',
+                winnerNick: row.winner_nick,
+                attempts: row.winner_attempts,
+                points: row.points,
+              });
+              setScreen('WINNER_ANNOUNCED');
+            }
           }
         }
       )
@@ -107,7 +110,7 @@ export default function GamePage() {
         return;
       }
 
-      const data: { score: number; isWinner: boolean; rank?: number } = await res.json();
+      const data: { score: number; isWinner: boolean; points?: number } = await res.json();
 
       const newGuess: Guess = {
         id: `${Date.now()}`,
@@ -118,13 +121,19 @@ export default function GamePage() {
       setGuesses((prev) => [newGuess, ...prev]);
       setChances((c) => c - 1);
 
-      const msg = getToastMessage(data.score);
-      if (msg) showToast(msg);
-
       if (data.isWinner) {
-        // 위너 오버레이는 Realtime으로 트리거됨
+        // 위너 자신: API 응답에서 즉시 오버레이 표시 (Realtime 대기 불필요)
+        setWinnerInfo({
+          isWinner: true,
+          answer: word,
+          points: data.points ?? 100,
+        });
+        setScreen('WINNER_ANNOUNCED');
         return;
       }
+
+      const msg = getToastMessage(data.score);
+      if (msg) showToast(msg);
 
       if (chances - 1 <= 0) {
         setScreen('OUT_OF_CHANCES');
@@ -148,10 +157,10 @@ export default function GamePage() {
 
   const handleRoundExpire = () => {
     setScreen('ROUND_END');
-    // 라운드 종료 후 자동 리셋
     setTimeout(() => {
       setGuesses([]);
       setChances(MAX_CHANCES);
+      setWinnerInfo(null);
       setRoundId(getCurrentRoundId());
       setScreen('PLAYING');
     }, 3000);
