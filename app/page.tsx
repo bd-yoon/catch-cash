@@ -110,7 +110,14 @@ export default function GamePage() {
         return;
       }
 
-      const data: { score: number; isWinner: boolean; points?: number } = await res.json();
+      const data: { score: number; isWinner: boolean; points?: number; roundEnded?: boolean; answer?: string } = await res.json();
+
+      // 라운드가 이미 끝난 경우 → 위너 화면으로 전환
+      if (data.roundEnded) {
+        setWinnerInfo({ isWinner: false, answer: data.answer ?? '???' });
+        setScreen('WINNER_ANNOUNCED');
+        return;
+      }
 
       const newGuess: Guess = {
         id: `${Date.now()}`,

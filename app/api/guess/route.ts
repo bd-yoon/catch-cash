@@ -94,7 +94,14 @@ export async function POST(req: NextRequest) {
   }
 
   if (round.winner_user_id) {
-    return NextResponse.json({ message: '이미 위너가 있어요', score: 0, isWinner: false });
+    // 라운드가 이미 끝났음 → 클라이언트에서 위너 화면 전환에 필요한 정보 포함
+    return NextResponse.json({
+      message: '이미 위너가 있어요',
+      score: 0,
+      isWinner: false,
+      roundEnded: true,
+      answer: round.answer_word,
+    });
   }
 
   const score = getWordScore(round.answer_word, word);
