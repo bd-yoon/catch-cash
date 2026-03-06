@@ -32,7 +32,7 @@ export default function WinnerOverlay({ isWinner, answer, winnerNick, attempts, 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const colors = ['#FFD700', '#00E5CC', '#FF8C42', '#E83D3D', '#FFFFFF'];
+    const colors = ['#FFD700', '#FFE566', '#FF6B1A', '#C4963A', '#FFFFFF'];
     const particles = Array.from({ length: 120 }, () => ({
       x: Math.random() * canvas.width,
       y: -10,
@@ -70,7 +70,7 @@ export default function WinnerOverlay({ isWinner, answer, winnerNick, attempts, 
   return (
     <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ background: 'rgba(13,13,26,0.92)' }}
+      style={{ background: 'rgba(26,14,0,0.95)' }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -81,44 +81,44 @@ export default function WinnerOverlay({ isWinner, answer, winnerNick, attempts, 
 
       <motion.div
         className="relative z-10 mx-6 rounded-2xl p-8 text-center flex flex-col gap-4 max-w-sm w-full"
-        style={{ background: '#1A1A2E', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: '#2D1A00', border: '1px solid rgba(255,215,0,0.25)' }}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {isWinner ? (
           <>
-            <div className="text-5xl">🎉</div>
-            <h2 className="text-2xl font-bold" style={{ color: '#FFD700' }}>
-              이번 라운드 우승!
+            <div className="text-5xl">⭐</div>
+            <h2 className="text-2xl font-black text-gold-gradient">
+              황금 획득!
             </h2>
-            <p className="text-white/60 text-sm">정답은</p>
-            <p className="text-3xl font-bold text-white">{answer}</p>
+            <p className="text-sm" style={{ color: '#A08060' }}>정답은</p>
+            <p className="text-3xl font-bold" style={{ color: '#FFF8E7' }}>{answer}</p>
             <div
               className="rounded-xl py-3 px-4"
-              style={{ background: 'rgba(255,215,0,0.12)' }}
+              style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.3)' }}
             >
-              <span className="text-accent-gold font-bold text-xl">+{points ?? 0}P</span>
-              <span className="text-white/50 text-sm ml-2">획득!</span>
+              <span className="font-black text-xl" style={{ color: '#FFD700' }}>+{points ?? 0}P</span>
+              <span className="text-sm ml-2" style={{ color: '#A08060' }}>획득!</span>
             </div>
           </>
         ) : (
           <>
-            <div className="text-4xl">😔</div>
-            <p className="text-white/60 text-sm">정답은</p>
-            <p className="text-3xl font-bold text-white">{answer}</p>
+            <div className="text-4xl">🏺</div>
+            <p className="text-sm" style={{ color: '#A08060' }}>스핑크스의 정답은</p>
+            <p className="text-3xl font-bold" style={{ color: '#FFD700' }}>{answer}</p>
             {winnerNick && (
-              <p className="text-sm text-white/50">
-                <span className="text-white font-semibold">{winnerNick}</span>님이{' '}
+              <p className="text-sm" style={{ color: '#A08060' }}>
+                <span className="font-semibold" style={{ color: '#FFF8E7' }}>{winnerNick}</span>님이{' '}
                 {attempts}번째 시도에 맞추셨어요
               </p>
             )}
           </>
         )}
 
-        <div className="mt-2 rounded-xl py-3" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <p className="text-white/40 text-xs mb-1">다음 라운드까지</p>
-          <p className="tabular-nums font-mono font-bold text-xl text-white">
+        <div className="mt-2 rounded-xl py-3" style={{ background: 'rgba(255,215,0,0.06)', border: '1px solid rgba(255,215,0,0.12)' }}>
+          <p className="text-xs mb-1" style={{ color: '#A08060' }}>다음 수수께끼까지</p>
+          <p className="tabular-nums font-mono font-bold text-xl" style={{ color: '#FFD700' }}>
             {formatMMSS(nextMs)}
           </p>
         </div>
@@ -126,7 +126,8 @@ export default function WinnerOverlay({ isWinner, answer, winnerNick, attempts, 
         {onClose && (
           <button
             onClick={onClose}
-            className="mt-1 text-white/30 text-sm underline"
+            className="mt-1 text-sm underline"
+            style={{ color: '#A08060' }}
           >
             닫기
           </button>

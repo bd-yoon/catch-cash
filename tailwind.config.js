@@ -7,16 +7,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // 캐치 캐쉬 팔레트
-        bg: '#0D0D1A',
-        surface: '#1A1A2E',
-        surface2: '#16213E',
-        'accent-gold': '#FFD700',
-        'accent-mint': '#00E5CC',
-        'cold': '#4A90E2',
-        'warm': '#F5C842',
-        'hot': '#FF8C42',
-        'danger': '#E83D3D',
+        bg:        '#1A0E00',
+        surface:   '#2D1A00',
+        surface2:  '#3D2500',
+        gold:      '#FFD700',
+        'gold-light': '#FFE566',
+        sand:      '#C4963A',
+        'text-warm': '#FFF8E7',
+        'text-muted': '#A08060',
+        // 유사도 온도계
+        cold:      '#6BBFFF',
+        warm:      '#FFD700',
+        hot:       '#FF6B1A',
+        danger:    '#FF2D2D',
       },
       fontFamily: {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],

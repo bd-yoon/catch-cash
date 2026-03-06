@@ -22,13 +22,15 @@ export default function GuessInput({ onSubmit, disabled, loading, placeholder }:
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // IME 조합 중이면 무시
     if (e.nativeEvent.isComposing) return;
     if (e.key === 'Enter') handleSubmit();
   };
 
   return (
-    <div className="flex gap-2 items-center px-4 py-3 border-t border-white/10 bg-surface safe-bottom">
+    <div
+      className="flex gap-2 items-center px-4 py-3 safe-bottom"
+      style={{ borderTop: '1px solid rgba(255,215,0,0.15)', background: '#2D1A00', flexShrink: 0 }}
+    >
       <input
         ref={inputRef}
         type="text"
@@ -37,10 +39,12 @@ export default function GuessInput({ onSubmit, disabled, loading, placeholder }:
         onKeyDown={handleKeyDown}
         disabled={disabled || loading}
         placeholder={placeholder ?? '단어를 입력하세요'}
-        className="flex-1 bg-surface2 rounded-xl px-4 py-3 text-white text-base
-                   placeholder:text-white/30 outline-none border border-white/10
-                   focus:border-accent-mint/50 disabled:opacity-40
-                   transition-colors duration-200"
+        className="flex-1 rounded-xl px-4 py-3 text-base outline-none transition-colors duration-200"
+        style={{
+          background: '#3D2500',
+          color: '#FFF8E7',
+          border: '1px solid rgba(255,215,0,0.2)',
+        }}
         autoComplete="off"
         autoCorrect="off"
         spellCheck={false}
@@ -48,12 +52,13 @@ export default function GuessInput({ onSubmit, disabled, loading, placeholder }:
       <button
         onClick={handleSubmit}
         disabled={disabled || loading || !value.trim()}
-        className="min-w-[64px] h-12 rounded-xl font-bold text-sm
-                   bg-accent-mint text-bg px-4
-                   disabled:opacity-30 active:scale-95
-                   transition-all duration-150"
+        className="min-w-[64px] h-12 rounded-xl font-black text-sm px-4 transition-all duration-150 active:scale-95 disabled:opacity-30"
+        style={{
+          background: 'linear-gradient(135deg, #FFE566, #FFD700)',
+          color: '#1A0E00',
+        }}
       >
-        {loading ? '...' : '확인'}
+        {loading ? '···' : '확인'}
       </button>
     </div>
   );

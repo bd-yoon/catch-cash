@@ -11,15 +11,16 @@ import GuessHistory from '@/components/GuessHistory';
 import GuessInput from '@/components/GuessInput';
 import WinnerOverlay from '@/components/WinnerOverlay';
 import OutOfChancesModal from '@/components/OutOfChancesModal';
+import HomeScreen from '@/components/HomeScreen';
 import type { Guess } from '@/components/GuessRow';
 
-type Screen = 'LOADING' | 'PLAYING' | 'OUT_OF_CHANCES' | 'WINNER_ANNOUNCED' | 'ROUND_END';
+type Screen = 'HOME' | 'LOADING' | 'PLAYING' | 'OUT_OF_CHANCES' | 'WINNER_ANNOUNCED' | 'ROUND_END';
 
 const MAX_CHANCES = 5;
 const AD_BONUS_CHANCES = 3;
 
 export default function GamePage() {
-  const [screen, setScreen] = useState<Screen>('LOADING');
+  const [screen, setScreen] = useState<Screen>('HOME');
   const [guesses, setGuesses] = useState<Guess[]>([]);
   const [chances, setChances] = useState(MAX_CHANCES);
   const [roundId, setRoundId] = useState('');
@@ -36,8 +37,8 @@ export default function GamePage() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userId = useRef(getUserId());
 
-  // 라운드 초기화
-  useEffect(() => {
+  // HOME에서 게임 시작 시 라운드 초기화
+  const handleStart = useCallback(() => {
     const id = getCurrentRoundId();
     setRoundId(id);
     setScreen('PLAYING');
@@ -156,10 +157,14 @@ export default function GamePage() {
     }, 3000);
   };
 
+  if (screen === 'HOME') {
+    return <HomeScreen onStart={handleStart} />;
+  }
+
   if (screen === 'LOADING') {
     return (
-      <main className="min-h-dvh bg-bg flex items-center justify-center">
-        <div className="text-white/50 text-sm animate-pulse">로딩 중...</div>
+      <main className="min-h-dvh flex items-center justify-center" style={{ background: '#1A0E00' }}>
+        <div className="text-sm animate-pulse" style={{ color: '#A08060' }}>로딩 중...</div>
       </main>
     );
   }
@@ -171,34 +176,37 @@ export default function GamePage() {
         minHeight: '100dvh',
         maxWidth: 480,
         margin: '0 auto',
-        background: '#0D0D1A',
+        background: '#1A0E00',
       }}
     >
       {/* 헤더 */}
       <header
         className="flex items-center justify-between px-4 safe-top"
         style={{
-          height: 56,
-          background: '#1A1A2E',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          height: 60,
+          background: '#2D1A00',
+          borderBottom: '1px solid rgba(255,215,0,0.12)',
           flexShrink: 0,
         }}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white/40">라운드</span>
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(0,229,204,0.15)', color: '#00E5CC' }}
-          >
-            #{roundId.slice(-4)}
-          </span>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">🏺</span>
+            <span
+              className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(255,215,0,0.15)', color: '#FFD700' }}
+            >
+              #{roundId.slice(-4)}
+            </span>
+          </div>
+          <span className="text-xs mt-0.5" style={{ color: '#A08060' }}>먼저 맞추면 100P!</span>
         </div>
 
         <CountdownTimer onExpire={handleRoundExpire} />
 
         <div className="flex items-center gap-1.5">
           <span className="text-base">🎯</span>
-          <span className="text-sm font-bold text-white">{chances}회</span>
+          <span className="text-sm font-bold" style={{ color: '#FFF8E7' }}>{chances}회</span>
         </div>
       </header>
 
@@ -244,10 +252,11 @@ export default function GamePage() {
 
       {/* 라운드 종료 */}
       {screen === 'ROUND_END' && !winnerInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/90">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(26,14,0,0.92)' }}>
           <div className="text-center">
-            <p className="text-white/50 text-sm">다음 라운드 준비 중...</p>
-            <div className="mt-3 w-8 h-8 border-2 border-accent-mint border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="text-3xl mb-3">🏺</div>
+            <p className="text-sm" style={{ color: '#A08060' }}>다음 수수께끼 준비 중...</p>
+            <div className="mt-3 w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: '#FFD700', borderTopColor: 'transparent' }} />
           </div>
         </div>
       )}

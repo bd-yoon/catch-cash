@@ -3,11 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0D0D1A;
-  --surface: #1A1A2E;
-  --surface2: #16213E;
-  --accent-gold: #FFD700;
-  --accent-mint: #00E5CC;
+  --bg:        #1A0E00;
+  --surface:   #2D1A00;
+  --surface2:  #3D2500;
+  --gold:      #FFD700;
+  --gold-light:#FFE566;
+  --sand:      #C4963A;
+  --text:      #FFF8E7;
+  --text-muted:#A08060;
 }
 
 * {
@@ -19,13 +22,9 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: var(--bg);
-  color: #fff;
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow: hidden;
-  height: 100%;
-}
-
-#__next, main {
   height: 100%;
 }
 
@@ -33,7 +32,7 @@ html, body {
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-/* 모노스페이스 숫자 (카운트다운) */
+/* 모노스페이스 숫자 */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -42,3 +41,30 @@ html, body {
 /* 스크롤바 숨김 */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 황금 그라데이션 텍스트 */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFE566 0%, #FFD700 50%, #C4963A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 스핑크스 호흡 애니메이션 */
+@keyframes sphinx-breathe {
+  0%, 100% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 20px rgba(255,215,0,0.3)); }
+  50% { transform: translateY(-8px) scale(1.02); filter: drop-shadow(0 0 40px rgba(255,215,0,0.6)); }
+}
+
+@keyframes shimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes sand-drift {
+  0% { transform: translateX(-100%); opacity: 0; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}

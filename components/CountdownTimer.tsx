@@ -28,7 +28,7 @@ export default function CountdownTimer({ onExpire }: Props) {
   return (
     <motion.span
       className="tabular-nums font-mono font-bold text-2xl"
-      style={{ color: isUrgent ? '#E83D3D' : '#fff' }}
+      style={{ color: isUrgent ? '#FF2D2D' : '#FFD700' }}
       animate={isUrgent ? { scale: [1, 1.04, 1] } : {}}
       transition={{
         repeat: Infinity,
