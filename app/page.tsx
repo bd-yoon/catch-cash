@@ -1,0 +1,256 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabaseClient } from '@/lib/supabase';
+import { getCurrentRoundId } from '@/lib/date';
+import { getUserId } from '@/lib/storage';
+import { getToastMessage } from '@/lib/scoreColor';
+import { showRewardedAd } from '@/lib/adsInToss';
+import CountdownTimer from '@/components/CountdownTimer';
+import GuessHistory from '@/components/GuessHistory';
+import GuessInput from '@/components/GuessInput';
+import WinnerOverlay from '@/components/WinnerOverlay';
+import OutOfChancesModal from '@/components/OutOfChancesModal';
+import type { Guess } from '@/components/GuessRow';
+
+type Screen = 'LOADING' | 'PLAYING' | 'OUT_OF_CHANCES' | 'WINNER_ANNOUNCED' | 'ROUND_END';
+
+const MAX_CHANCES = 5;
+const AD_BONUS_CHANCES = 3;
+
+export default function GamePage() {
+  const [screen, setScreen] = useState<Screen>('LOADING');
+  const [guesses, setGuesses] = useState<Guess[]>([]);
+  const [chances, setChances] = useState(MAX_CHANCES);
+  const [roundId, setRoundId] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [adLoading, setAdLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [winnerInfo, setWinnerInfo] = useState<{
+    isWinner: boolean;
+    answer: string;
+    winnerNick?: string;
+    attempts?: number;
+    points?: number;
+  } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userId = useRef(getUserId());
+
+  // 라운드 초기화
+  useEffect(() => {
+    const id = getCurrentRoundId();
+    setRoundId(id);
+    setScreen('PLAYING');
+  }, []);
+
+  // Supabase Realtime: rounds 테이블 위너 감지
+  useEffect(() => {
+    if (!roundId) return;
+
+    const channel = supabaseClient()
+      .channel(`round-${roundId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rounds',
+          filter: `id=eq.${roundId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            winner_user_id?: string;
+            answer_word?: string;
+            winner_nick?: string;
+            winner_attempts?: number;
+            points?: number;
+          };
+          if (row.winner_user_id) {
+            const isWinner = row.winner_user_id === userId.current;
+            setWinnerInfo({
+              isWinner,
+              answer: row.answer_word ?? '???',
+              winnerNick: row.winner_nick,
+              attempts: row.winner_attempts,
+              points: row.points,
+            });
+            setScreen('WINNER_ANNOUNCED');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabaseClient().removeChannel(channel); };
+  }, [roundId]);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2000);
+  };
+
+  const handleGuess = useCallback(async (word: string) => {
+    if (submitting || chances <= 0) return;
+    setSubmitting(true);
+
+    try {
+      const res = await fetch('/api/guess', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, roundId, userId: userId.current }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        showToast(err.message ?? '오류가 발생했어요');
+        return;
+      }
+
+      const data: { score: number; isWinner: boolean; rank?: number } = await res.json();
+
+      const newGuess: Guess = {
+        id: `${Date.now()}`,
+        word,
+        score: data.score,
+      };
+
+      setGuesses((prev) => [newGuess, ...prev]);
+      setChances((c) => c - 1);
+
+      const msg = getToastMessage(data.score);
+      if (msg) showToast(msg);
+
+      if (data.isWinner) {
+        // 위너 오버레이는 Realtime으로 트리거됨
+        return;
+      }
+
+      if (chances - 1 <= 0) {
+        setScreen('OUT_OF_CHANCES');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [submitting, chances, roundId]);
+
+  const handleWatchAd = async () => {
+    setAdLoading(true);
+    const rewarded = await showRewardedAd();
+    setAdLoading(false);
+    if (rewarded) {
+      setChances((c) => c + AD_BONUS_CHANCES);
+      setScreen('PLAYING');
+    } else {
+      showToast('광고를 완료해야 기회가 추가돼요');
+    }
+  };
+
+  const handleRoundExpire = () => {
+    setScreen('ROUND_END');
+    // 라운드 종료 후 자동 리셋
+    setTimeout(() => {
+      setGuesses([]);
+      setChances(MAX_CHANCES);
+      setRoundId(getCurrentRoundId());
+      setScreen('PLAYING');
+    }, 3000);
+  };
+
+  if (screen === 'LOADING') {
+    return (
+      <main className="min-h-dvh bg-bg flex items-center justify-center">
+        <div className="text-white/50 text-sm animate-pulse">로딩 중...</div>
+      </main>
+    );
+  }
+
+  return (
+    <main
+      className="flex flex-col"
+      style={{
+        minHeight: '100dvh',
+        maxWidth: 480,
+        margin: '0 auto',
+        background: '#0D0D1A',
+      }}
+    >
+      {/* 헤더 */}
+      <header
+        className="flex items-center justify-between px-4 safe-top"
+        style={{
+          height: 56,
+          background: '#1A1A2E',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          flexShrink: 0,
+        }}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-white/40">라운드</span>
+          <span
+            className="text-xs font-bold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(0,229,204,0.15)', color: '#00E5CC' }}
+          >
+            #{roundId.slice(-4)}
+          </span>
+        </div>
+
+        <CountdownTimer onExpire={handleRoundExpire} />
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-base">🎯</span>
+          <span className="text-sm font-bold text-white">{chances}회</span>
+        </div>
+      </header>
+
+      {/* 추측 기록 */}
+      <GuessHistory guesses={guesses} />
+
+      {/* 토스트 */}
+      {toast && (
+        <div
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-30
+                     px-4 py-2 rounded-full text-sm font-semibold text-bg
+                     pointer-events-none"
+          style={{ background: '#FFD700' }}
+        >
+          {toast}
+        </div>
+      )}
+
+      {/* 입력창 */}
+      <GuessInput
+        onSubmit={handleGuess}
+        disabled={screen !== 'PLAYING' || chances <= 0}
+        loading={submitting}
+        placeholder={chances <= 0 ? '기회가 없어요' : '단어를 입력하세요'}
+      />
+
+      {/* 기회 소진 모달 */}
+      {screen === 'OUT_OF_CHANCES' && (
+        <OutOfChancesModal
+          onWatchAd={handleWatchAd}
+          onGiveUp={() => setScreen('ROUND_END')}
+          loading={adLoading}
+        />
+      )}
+
+      {/* 위너 오버레이 */}
+      {screen === 'WINNER_ANNOUNCED' && winnerInfo && (
+        <WinnerOverlay
+          {...winnerInfo}
+          onClose={() => setScreen('ROUND_END')}
+        />
+      )}
+
+      {/* 라운드 종료 */}
+      {screen === 'ROUND_END' && !winnerInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/90">
+          <div className="text-center">
+            <p className="text-white/50 text-sm">다음 라운드 준비 중...</p>
+            <div className="mt-3 w-8 h-8 border-2 border-accent-mint border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
